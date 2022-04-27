@@ -1,0 +1,21 @@
+title = "Twilio Text Messaging credentials"
+
+[project]
+  name = "twilio_sms_py"
+
+# Twilio API configurations
+[twilio.LIVE]
+  environment = "LIVE"
+  account_sid = ""
+  api_token = ""
+
+[twilio.TEST]
+  environment = "TEST"
+  account_sid = ""
+  api_token = ""
+
+[twilio.sender]
+  from_number = "+18005551111"
+  from_sid = ""
+  messaging_service_sid = ""
+  from_capabilities = ["voice", "fax", "sms", "mms"]
