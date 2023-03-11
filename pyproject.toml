@@ -15,6 +15,7 @@ requests = "*"
 pendulum = "*"
 pydantic = "*"
 twilio = "*"
+toml = "*"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

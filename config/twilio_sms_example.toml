@@ -1,0 +1,17 @@
+title = "Twilio Text Messaging credentials"
+
+[project]
+  name = "twilio_sms_api_py"
+
+# Twilio API configurations
+[twilio.LIVE]
+  account_sid = ""
+  auth_token = ""
+
+[twilio.TEST]
+  account_sid = ""
+  auth_token = ""
+
+[twilio.digits]
+  to_number = "+13609871234"
+  from_number = "+13601239876"
