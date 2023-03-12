@@ -1,6 +1,8 @@
 ## twilio_sms_api_py
 
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Code style: isort](https://img.shields.io/badge/%20imports-isort-%231674b1)](https://pycqa.github.io/isort/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-blue?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
@@ -14,9 +16,9 @@ Send text messages programmatically with Twilio SMS API.
 ```
 # setup Twilio account
 # update *_secret.toml file to include your API credentials and phone number
-cp './app/config/twilio_sms_example.toml' './app/config/twilio_sms_secret.toml'
+cp './config/twilio_sms_example.toml' './config/twilio_sms_secret.toml'
 
-within './app/config/*_secret.toml':
+within './config/*_secret.toml':
 [twilio.LIVE]
     account_sid = "123456789abcdefg"   # <-- UPDATE
     auth_token = "abcdefg123456789"
@@ -34,6 +36,7 @@ poetry --version
 poetry self update
 
 # use latest python version for venv
+pyenv install --list | grep " 3.11"
 pyenv install 3.11.0
 pyenv local 3.11.0
 
