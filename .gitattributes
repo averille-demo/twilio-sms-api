@@ -1,0 +1,9 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# bash scripts, keep linux LF for newlines
+*.sh text eol=lf
+*.sql text eol=lf
+
+# images
+*.png binary

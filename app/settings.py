@@ -163,8 +163,8 @@ class PyProjectToolPoetry(BaseSettings):
     https://python-poetry.org/docs/pyproject/
     """
 
-    name: str
-    version: str
+    name: Optional[str]
+    version: Optional[str]
     description: Optional[str]
     license: Optional[str]
     authors: Optional[List[str]]

@@ -11,7 +11,7 @@ from typing import List, Optional
 import emoji
 from pydantic import BaseModel, validator
 
-REDACTED_BODY = "__redacted__"
+REDACTED_BODY = ""
 
 
 # pylint: disable=[too-few-public-methods]
