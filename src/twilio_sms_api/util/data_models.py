@@ -4,6 +4,7 @@ https://docs.pydantic.dev/usage/models/
 https://docs.pydantic.dev/usage/model_config/
 https://docs.python.org/3/library/datetime.html
 """
+
 import re
 from datetime import datetime
 from typing import List, Optional

@@ -1,19 +1,24 @@
 [tool.poetry]
-name = "twilio_sms_api_py"
-version = "1.2.9"
+authors = ["Emile Averill <cloud.apps@averille.dev>"]
 description = "DEMO: send/parse text messages with Twilio API"
-authors = ["Emile Averill <cloud.dev.apps@averille.com>"]
-repository = "https://github.com/averille-demo/twilio_sms_api_py"
-readme = "README.md"
+keywords = ["SMS", "Twilio", "messaging", "text"]
 license = "MIT"
-keywords = ["Twilio", "SMS", "text", "messaging", "REST"]
+name = "twilio-sms-api"
+packages = [
+    {from = "src", include = "twilio_sms_api"},
+]
+readme = "README.md"
+repository = "https://github.com/averille-demo/twilio-sms-api"
+version = "1.3.4"
 
 [tool.poetry.dependencies]
-python = "^3.11.0"
 emoji = "*"
-requests = "*"
 pendulum = "*"
 pydantic = "*"
+pydantic-settings = "*"
+python = "^3.12"
+requests = "*"
+structlog = "*"
 twilio = "*"
 
 [tool.poetry.group.dev.dependencies]
@@ -26,55 +31,80 @@ pydocstyle = "*"
 pylint = "*"
 pytest = "*"
 pytest-cov = "*"
+ruff = "*"
+toml-sort = "*"
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".venv",
+    ".vscode",
+]
+include = [
+    "pyproject.toml",
+    "src/**/*.py",
+]
+line-length = 120
+# enable pydocstyle errors/warnings, isort, and pylint
+select = ["E", "I", "PL", "W"]
+src = ["src", "test"]
+target-version = "py312"
 
 [tool.black]
 line-length = 120
-target-version = ["py311"]
-quiet = "True"
+quiet = false
+target-version = ["py312"]
 
 [tool.isort]
-py_version = 311
-profile = "black"
 combine_as_imports = true
-use_parentheses = true
-src_paths = ["app", "tests"]
-skip = [".gitignore", ".dockerignore"]
-line_length = 120
 ensure_newline_before_comments = true
+line_length = 120
+profile = "black"
+py_version = 312
+skip = [".dockerignore", ".gitignore", ".venv"]
+src_paths = ["src", "tests"]
+use_parentheses = true
+
+[tool.tomlsort]
+all = true
+in_place = true
+no_sort_tables = true
+sort_inline_arrays = true
+sort_inline_tables = true
+spaces_indent_inline_array = 4
+trailing_comma_inline_array = true
 
 [tool.mypy]
-python_version = "3.11"
-files = "*.py"
-mypy_path = "app"
+disable_error_code = [
+    "import",
+]
 explicit_package_bases = false
-namespace_packages = false
+files = "*.py"
 ignore_missing_imports = true
+mypy_path = "src"
+namespace_packages = false
 no_implicit_optional = true
 pretty = true
+python_version = "3.12"
 show_error_codes = true
-disable_error_code = [
-    "import"
-]
 
 [tool.pydocstyle]
 convention = "google"
 
 [tool.pylint.messages_control]
-max-line-length = 120
-extension-pkg-allow-list = ["pydantic"]
 disable = [
-    "consider-using-dict-items",
-    "consider-iterating-dictionary",
-    "logging-fstring-interpolation",
+    "import-error",
     "invalid-name",
+    "logging-fstring-interpolation",
     "no-self-argument",
-    "no-name-in-module",
 ]
+extension-pkg-allow-list = ["pydantic"]
+max-line-length = 120
 
 [tool.pytest.ini_options]
-pythonpath = [".", "app"]
+pythonpath = [".", "src"]
 testpaths = [".", "tests"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]

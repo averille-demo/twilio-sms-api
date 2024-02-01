@@ -4,6 +4,7 @@ Resources:
 https://www.teracodes.com/area-codes/washington/
 https://unicode.org/emoji/charts/full-emoji-list.html
 """
+
 import json
 import time
 import uuid
@@ -13,6 +14,8 @@ from typing import Dict, List, Optional
 
 import pendulum
 import twilio.rest
+import util.data_models
+import util.settings
 from emoji import emoji_count
 from pydantic import ValidationError
 from twilio.base.exceptions import TwilioException, TwilioRestException
@@ -20,11 +23,8 @@ from twilio.http.http_client import TwilioHttpClient
 from twilio.rest import Client
 from twilio.rest.api.v2010.account.message import MessageInstance
 from twilio.rest.lookups.v2.phone_number import PhoneNumberInstance
-
-import data_models
-import settings
-from emoji_generator import get_random_emoji
-from logger import init_logger
+from util.emoji_generator import get_random_emoji
+from util.logger import init_logger
 
 MODULE = Path(__file__).resolve().name
 PROJECT_PATH = Path(__file__).resolve().parent.parent

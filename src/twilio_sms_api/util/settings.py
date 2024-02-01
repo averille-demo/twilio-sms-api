@@ -2,13 +2,14 @@
 
 https://docs.pydantic.dev/usage/settings/
 """
+
 import re
 import string
 import tomllib
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings, validator
 
 PROJECT_PATH = Path(__file__).resolve().parent.parent
 
