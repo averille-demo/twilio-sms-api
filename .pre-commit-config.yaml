@@ -20,7 +20,8 @@ repos:
     -   id: check-toml
     -   id: detect-private-key
     -   id: end-of-file-fixer
-        args: [ -f, lf ]
+    -   id: mixed-line-ending
+        args: [-f, lf]
     -   id: trailing-whitespace
 
   - repo: https://github.com/pycqa/flake8
