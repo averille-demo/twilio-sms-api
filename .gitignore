@@ -5,6 +5,7 @@ desktop.ini
 
 # Temp files
 *~*
+*_temp
 *.bak*
 *.lock
 *.log
@@ -25,7 +26,7 @@ desktop.ini
 .vscode/
 
 # API credentials
-**/config/*secret*
+*secret*
 
 # API responses
 **/responses/

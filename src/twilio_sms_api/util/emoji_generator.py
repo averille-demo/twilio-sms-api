@@ -4,16 +4,37 @@ https://unicode.org/emoji/charts/full-emoji-list.html
 https://carpedm20.github.io/emoji/
 https://raw.githubusercontent.com/carpedm20/emoji/master/emoji/unicode_codes/data_dict.py
 """
+
 import random
 from typing import Dict, List
 
 import emoji
 
-EXCLUDED = [
+EXCLUDED: List[str] = [
+    "ball",
+    "black",
+    "brown",
+    "button",
+    "clock",
+    "cloud",
     "face",
+    "flag",
+    "globe",
+    "green",
+    "hand",
+    "man",
+    "men",
+    "medal",
+    "moon",
     "people",
     "person",
     "pointing",
+    "speak",
+    "thirty",
+    "white",
+    "woman",
+    "women",
+    "yellow",
 ]
 
 
@@ -49,7 +70,7 @@ def build_emoji_map(
 
     Args:
         is_filtered (bool): filter list of available emoji:
-           not excluded, not title case, unicode string length of 1
+           not excluded or unicode length > 1
 
     Returns:
         sorted mapping of readable name to unicode emoji string
@@ -57,14 +78,14 @@ def build_emoji_map(
     emoji_map = {}
     for emoji_icon in list(emoji.EMOJI_DATA):
         emoji_name = emoji.demojize(emoji_icon, delimiters=("", ""))
+        # remove symbols, cast to lowercase
+        emoji_name = emoji_name.replace("’", "").replace("-", "_").replace(".", "").lower()
         if is_filtered:
             # ignore any substring from excluded list
             if not any(e in emoji_name for e in EXCLUDED):
-                # ignore countries/flags
-                if not emoji_name.istitle():
-                    # ignore long unicode emoji strings
-                    if len(emoji_icon) == 1:
-                        emoji_map[emoji_name] = emoji_icon
+                # ignore long unicode emoji strings (countries/flags)
+                if len(emoji_icon) == 1:
+                    emoji_map[emoji_name] = emoji_icon
         else:
             emoji_map[emoji_name] = emoji_icon
     return sort_results(emoji_map)
@@ -73,7 +94,7 @@ def build_emoji_map(
 EMOJI_MAP = build_emoji_map()
 
 
-def show_emoji_data():
+def show_emoji_data() -> None:
     """Display sorted emoji data."""
     for i, (emoji_name, emoji_icon) in enumerate(EMOJI_MAP.items(), start=1):
         print(f"emoji_{i:04d}\t{emoji_name} = {emoji_icon} ({len(emoji_icon)} chars)")

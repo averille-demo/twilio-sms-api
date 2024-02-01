@@ -6,7 +6,7 @@ from typing import Dict
 import pytest
 from pydantic import ValidationError
 
-from app import settings
+from src.twilio_sms_api.util import settings
 
 
 def test_valid_phone_numbers():

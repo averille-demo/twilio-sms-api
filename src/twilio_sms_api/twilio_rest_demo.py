@@ -4,66 +4,56 @@ Resources:
 https://www.teracodes.com/area-codes/washington/
 https://unicode.org/emoji/charts/full-emoji-list.html
 """
+
 import json
 import time
 import uuid
 from pathlib import Path
 from pprint import pprint
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import pendulum
-import twilio.rest
-from emoji import emoji_count
+import structlog
 from pydantic import ValidationError
 from twilio.base.exceptions import TwilioException, TwilioRestException
 from twilio.http.http_client import TwilioHttpClient
 from twilio.rest import Client
 from twilio.rest.api.v2010.account.message import MessageInstance
 from twilio.rest.lookups.v2.phone_number import PhoneNumberInstance
-
-import data_models
-import settings
-from emoji_generator import get_random_emoji
-from logger import init_logger
+from util.data_models import MessageExtract, MessageRecord
+from util.emoji_generator import get_random_emoji
+from util.settings import DATA_PATH, MAX_BODY_LEN, MAX_SID_LEN, TomlConfig, load_toml_config, parse_pyproject
 
 MODULE = Path(__file__).resolve().name
-PROJECT_PATH = Path(__file__).resolve().parent.parent
+
+
+structlog.configure(
+    cache_logger_on_first_use=True,
+    processors=[
+        structlog.processors.add_log_level,
+        structlog.processors.format_exc_info,
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=True),
+        structlog.dev.ConsoleRenderer(colors=True),
+    ],
+)
 
 
 class TwilioSmsClient:
     """Twilio Python SMS Client class."""
 
-    pyproject = settings.parse_pyproject()
-    log = init_logger(__file__)
+    pyproject = parse_pyproject()
+    log = structlog.get_logger()
 
-    def __init__(self, twilio_env: str):
+    def __init__(self, environment: str):
         """Set environment for TOML."""
         super().__init__()
-        self._config = settings.load_toml_config(twilio_env=twilio_env)
+        self._config = load_toml_config(environment=environment)
         self._client = self._setup_client()
 
         self._properties = {
             "from_number": self._config.from_number,
             "to_number": self._config.to_number,
         }
-
-    @property
-    def from_number(self) -> str:
-        """Sent from phone number in E.164 format.
-
-        Returns:
-            str example: '+12223334444'
-        """
-        return self._properties["from_number"]
-
-    @property
-    def to_number(self) -> str:
-        """Send to phone number in E.164 format.
-
-        Returns:
-            str: example '+12223334444'
-        """
-        return self._properties["to_number"]
 
     def __repr__(self) -> str:
         """Magic method string representation of class.
@@ -73,7 +63,17 @@ class TwilioSmsClient:
         """
         return f"{self.pyproject.name} (v{self.pyproject.version}) {self._config.environment}"
 
-    def _setup_client(self) -> twilio.rest.Client:
+    @property
+    def from_number(self) -> str:
+        """Sent from phone number in E.164 format."""
+        return self._properties["from_number"]
+
+    @property
+    def to_number(self) -> str:
+        """Send to phone number in E.164 format."""
+        return self._properties["to_number"]
+
+    def _setup_client(self) -> Client:
         """Utilize API credentials from TOML to create python client HTTP connection.
 
         Returns:
@@ -85,12 +85,12 @@ class TwilioSmsClient:
             TwilioRestException: if unable to connect to client HTTP connection.
         """
         try:
-            if isinstance(self._config, settings.TomlConfig):
+            if isinstance(self._config, TomlConfig):
                 # pass same logger instance to HTTP client
                 http_client = TwilioHttpClient(
                     pool_connections=False,
                     timeout=1.0,
-                    logger=self.log,
+                    # logger=self.log,
                     max_retries=1,
                 )
                 return Client(
@@ -130,7 +130,7 @@ class TwilioSmsClient:
         return is_valid
 
     @staticmethod
-    def show_record(record: Optional[data_models.MessageRecord]) -> None:
+    def show_record(record: Optional[MessageRecord]) -> None:
         """Display all object key/value pairs for debugging.
 
         Args:
@@ -139,16 +139,20 @@ class TwilioSmsClient:
         Returns:
             None: results printed to console
         """
-        if isinstance(record, data_models.MessageRecord):
-            pprint(object=record.dict(), indent=2, width=120, compact=True)
+        if isinstance(record, MessageRecord):
+            pprint(object=record.model_dump(), indent=2, width=120, compact=True)
 
     def build_random_message(self) -> str:
         """Generates random 8 char string with random emoji sequence."""
-        emojis = "".join(get_random_emoji(size=6))
+        emojis = " ".join(get_random_emoji(size=6))
         uid = str(uuid.uuid4()).split("-", maxsplit=1)[0]
         return f"{self} {uid} {emojis}"
 
-    def send_sms_text(self, to_number: str, payload: str) -> Optional[str]:
+    def send_sms_text(
+        self,
+        to_number: str,
+        payload: str,
+    ) -> Optional[str]:
         """Create MessageInstance and attempt to send SMS text message with Twilio API.
 
         https://www.twilio.com/docs/sms/api/message-resource#create-a-message-resource
@@ -162,10 +166,9 @@ class TwilioSmsClient:
         Returns:
             str: SID of text message
         """
-        max_len: int = 1600
-        if len(payload) >= max_len:
-            self.log.info(f"message truncated to ({max_len}) chars")
-            payload = payload[:max_len]
+        if len(payload) >= MAX_BODY_LEN:
+            self.log.error(f"message truncated to ({MAX_BODY_LEN}) chars")
+            payload = payload[:MAX_BODY_LEN]
         try:
             if self.verify_phone_number(digits=to_number):
                 # note: underscore after 'from_' parameter
@@ -176,7 +179,7 @@ class TwilioSmsClient:
                     attempt=1,
                     validity_period=5,
                 )
-                self.log.info(f"sid: '{message.sid}' {message.status}")
+                self.log.info(f"sid: '{message.sid}' status: '{message.status}'")
                 return message.sid
         except TwilioRestException:
             self.log.exception(f"failed to send message: '{payload}'")
@@ -189,7 +192,7 @@ class TwilioSmsClient:
             path.parent.mkdir(parents=True, exist_ok=True)
         if path.is_file():
             if path.suffix in [".json"]:
-                if path.stat().st_size > 10:
+                if path.stat().st_size > 0:
                     path.unlink(missing_ok=True)
 
     def save_records_to_json(
@@ -208,24 +211,22 @@ class TwilioSmsClient:
         Returns:
             None
         """
-        data: Dict = {
-            "extract_date": pendulum.now(tz="UTC"),
-            "count": len(records),
-            "records": records,
-        }
+        extract = MessageExtract(
+            count=len(records),
+            records=records,
+        )
         try:
             self.purge_prior(path=path)
-            with open(file=path, mode="w", encoding="utf-8") as fp:
-                formatted_str = json.dumps(data, indent=2, sort_keys=False, ensure_ascii=True, default=str)
-                fp.write(formatted_str)
+            path.write_text(data=extract.model_dump_json(indent=2), encoding="utf-8")
+            if path.is_file():
                 self.log.info(f"saved: '{path.name}'")
         except (ValueError, json.JSONDecodeError):
-            self.log.exception(f"{type(data)} '{path.name}'")
+            self.log.exception(f"{type(records)} '{path.name}'")
 
     def parse_message(
         self,
         sms: MessageInstance,
-    ) -> Optional[data_models.MessageRecord]:
+    ) -> Optional[MessageRecord]:
         """Convert desired parts of MessageInstance to pydantic model.
 
         https://github.com/twilio/twilio-python/blob/main/twilio/rest/api/v2010/account/message/__init__.py#L449
@@ -239,10 +240,10 @@ class TwilioSmsClient:
         parsed = None
         try:
             if isinstance(sms, MessageInstance):
-                parsed = data_models.MessageRecord(
+                parsed = MessageRecord(
                     sid=sms.sid,
-                    from_=sms.from_,
-                    to=sms.to,
+                    from_number=sms.from_,
+                    to_number=sms.to,
                     body=sms.body,
                     date_created=sms.date_created,
                     date_sent=sms.date_sent,
@@ -255,8 +256,6 @@ class TwilioSmsClient:
                     price=sms.price,
                     price_unit=sms.price_unit,
                     status=sms.status,
-                    emoji_count=emoji_count(sms.body, unique=True),
-                    is_redacted=sms.body == data_models.REDACTED_BODY,
                 )
         except ValidationError as ex:
             self.log.exception(ex.json())
@@ -264,7 +263,7 @@ class TwilioSmsClient:
 
     def is_valid_sid_format(self, sid: str) -> bool:
         """Validate length and prefix of sid string."""
-        is_valid = len(sid) == 34 and sid.startswith("SM")
+        is_valid = isinstance(sid, str) and len(sid) == MAX_SID_LEN and sid.startswith("SM")
         if not is_valid:
             self.log.error(f"invalid message sid format: {sid}")
         return is_valid
@@ -307,7 +306,7 @@ class TwilioSmsClient:
         self,
         sid: str,
         filename: str,
-    ) -> Optional[data_models.MessageRecord]:
+    ) -> Optional[MessageRecord]:
         """Parse relevant values from single text message.
 
         Args:
@@ -323,10 +322,7 @@ class TwilioSmsClient:
                 sms = self._client.messages(sid).fetch()
                 message = self.parse_message(sms=sms)
                 if message:
-                    self.save_records_to_json(
-                        path=Path(PROJECT_PATH, "data", filename),
-                        records=[message.dict()],
-                    )
+                    self.save_records_to_json(path=Path(DATA_PATH, filename), records=[message])
                     self.log.info(f"message extracted sid: {sid}")
         except TwilioRestException:
             self.log.exception(f"{sid}")
@@ -347,20 +343,20 @@ class TwilioSmsClient:
             None
         """
         records = []
-        messages: List[MessageInstance] = self._client.messages.list(limit=100)
-        for sms in messages:
-            message = self.parse_message(sms=sms)
-            if message:
-                # each row newline delimited dict
-                records.append(message.dict())
-        self.log.info(f"extracted ({len(records)}) messages in account history")
-        if len(records) > 0:
-            self.save_records_to_json(
-                path=Path(PROJECT_PATH, "data", filename),
-                records=records,
-            )
-        else:
-            self.log.error("no messages extracted")
+        try:
+            messages: List[MessageInstance] = self._client.messages.list(limit=100)
+            for sms in messages:
+                message = self.parse_message(sms)
+                if message:
+                    # each row newline delimited dict
+                    records.append(message)
+            self.log.info(f"extracted ({len(records)}) messages in account history")
+            if len(records) > 0:
+                self.save_records_to_json(path=Path(DATA_PATH, filename), records=records)
+            else:
+                self.log.error("no messages extracted")
+        except (TwilioException, TwilioRestException):
+            self.log.exception("Twilio client error")
 
 
 def run_demo():
@@ -373,7 +369,8 @@ def run_demo():
     """
     print(f"{MODULE} started: {pendulum.now(tz='America/Los_Angeles').to_datetime_string()}")
     start = time.perf_counter()
-    tsc = TwilioSmsClient(twilio_env="LIVE")
+    tsc = TwilioSmsClient(environment="LIVE")
+
     if tsc:
         sid = tsc.send_sms_text(to_number=tsc.to_number, payload=tsc.build_random_message())
         # check message body prior to redaction
@@ -384,6 +381,7 @@ def run_demo():
         tsc.extract_single_message(sid=sid, filename="after_redaction.json")
         # remove message entirely from history
         tsc.delete_message(sid=sid)
+
         # check all messages under account
         tsc.extract_all_text_messages(filename="text_message_history.json")
 
