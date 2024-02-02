@@ -22,7 +22,14 @@ from twilio.rest.api.v2010.account.message import MessageInstance
 from twilio.rest.lookups.v2.phone_number import PhoneNumberInstance
 from util.data_models import MessageExtract, MessageRecord
 from util.emoji_generator import get_random_emoji
-from util.settings import DATA_PATH, MAX_BODY_LEN, MAX_SID_LEN, TomlConfig, load_toml_config, parse_pyproject
+from util.settings import (
+    DATA_PATH,
+    MAX_BODY_LEN,
+    MAX_SID_LEN,
+    TomlConfig,
+    load_toml_config,
+    parse_pyproject,
+)
 
 MODULE = Path(__file__).resolve().name
 

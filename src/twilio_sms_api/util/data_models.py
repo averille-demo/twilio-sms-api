@@ -12,7 +12,13 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 import emoji
-from pydantic import BaseModel, ConfigDict, computed_field, field_serializer, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    computed_field,
+    field_serializer,
+    field_validator,
+)
 
 from twilio_sms_api.util.settings import MAX_SID_LEN, REDACTED_BODY
 
@@ -26,7 +32,12 @@ class MessageRecord(BaseModel):
     All datetime objects JSON encoded in 'YYYY-MM-DD HH:MM:SS' string format (UTC timezone)
     """
 
-    model_config = ConfigDict(check_fields=True, extra="forbid", populate_by_name=False, str_strip_whitespace=True)
+    model_config = ConfigDict(
+        check_fields=True,
+        extra="forbid",
+        populate_by_name=False,
+        str_strip_whitespace=True,
+    )
 
     sid: str
     status: str

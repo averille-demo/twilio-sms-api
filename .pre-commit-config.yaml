@@ -4,11 +4,6 @@ fail_fast: false
 
 # https://github.com/pre-commit/pre-commit-hooks/tree/main/pre_commit_hooks
 repos:
-  - repo: https://github.com/psf/black
-    rev: 24.1.1
-    hooks:
-      - id: black
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -16,12 +11,11 @@ repos:
     -   id: check-added-large-files
         args: [--maxkb=256]
     -   id: check-case-conflict
-    -   id: check-json
     -   id: check-toml
     -   id: detect-private-key
     -   id: end-of-file-fixer
     -   id: mixed-line-ending
-        args: [-f, lf]
+        args: [ -f, lf ]
     -   id: trailing-whitespace
 
   - repo: https://github.com/pycqa/flake8
@@ -29,12 +23,6 @@ repos:
     hooks:
       - id: flake8
         args: [--max-complexity=18, --max-line-length=120]
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: [--profile, black, line-length=120]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
@@ -53,12 +41,3 @@ repos:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
-
-  - repo: local
-    hooks:
-      - id: pytest
-        name: check-pytest
-        entry: poetry
-        pass_filenames: false
-        language: system
-        types: [python]

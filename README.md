@@ -1,12 +1,12 @@
 ## twilio_sms_api_py
 
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-312/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Code style: isort](https://img.shields.io/badge/%20imports-isort-%231674b1)](https://pycqa.github.io/isort/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-blue?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 Send text messages programmatically with Twilio SMS API.
 
@@ -36,9 +36,9 @@ poetry --version
 poetry self update
 
 # use latest python version for venv
-pyenv install --list | grep " 3.11"
-pyenv install 3.11.0
-pyenv local 3.11.0
+pyenv install --list | grep " 3.12"
+pyenv install 3.12.0
+pyenv local 3.12.0
 
 # update poetry settings
 poetry config virtualenvs.in-project true
@@ -60,7 +60,7 @@ poetry run pre-commit install
 
 ### Run Demo:
 ```
-poetry run python ./app/twilio_sms_demo.py
+poetry run python ./src/twilio_sms_api/twilio_rest_demo.py
 ```
 
 ### Resources:

@@ -5,13 +5,18 @@ from typing import Dict
 
 import pytest
 from pydantic import ValidationError
-
 from src.twilio_sms_api.util import settings
 
 
 def test_valid_phone_numbers():
     """Any phone number with/without '+1' or '1' prefix returns valid E.164 formatted string."""
-    for phone_number in ["+12223334444", "12223334444", "2223334444", "(222) 333-4444", "222-333-4444"]:
+    for phone_number in [
+        "+12223334444",
+        "12223334444",
+        "2223334444",
+        "(222) 333-4444",
+        "222-333-4444",
+    ]:
         result = settings.ensure_e164_format(phone_number)
         assert isinstance(result, str)
 
@@ -43,7 +48,14 @@ def test_load_toml_settings():
     """Check if parsing TOML to pydantic settings was successful."""
     config = settings.load_toml_config()
     assert isinstance(config, settings.TomlConfig)
-    for attr in ["name", "environment", "account_sid", "auth_token", "to_number", "from_number"]:
+    for attr in [
+        "name",
+        "environment",
+        "account_sid",
+        "auth_token",
+        "to_number",
+        "from_number",
+    ]:
         assert hasattr(config, attr)
         assert isinstance(getattr(config, attr), str)
 
