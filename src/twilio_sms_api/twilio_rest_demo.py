@@ -26,6 +26,7 @@ from util.settings import (
     DATA_PATH,
     MAX_BODY_LEN,
     MAX_SID_LEN,
+    REDACTED_BODY,
     TomlConfig,
     load_toml_config,
     parse_pyproject,
@@ -268,22 +269,22 @@ class TwilioSmsClient:
             self.log.exception(ex.json())
         return parsed
 
-    def is_valid_sid_format(self, sid: str) -> bool:
-        """Validate length and prefix of sid string."""
+    def is_valid_sms_sid(self, sid: str) -> bool:
+        """Validate length and prefix of SMS sid string."""
         is_valid = isinstance(sid, str) and len(sid) == MAX_SID_LEN and sid.startswith("SM")
         if not is_valid:
-            self.log.error(f"invalid message sid format: {sid}")
+            self.log.error(f"invalid message sid format: {sid=}")
         return is_valid
 
     def delete_message(self, sid: str) -> bool:
         """Remove the entire text message from account."""
         is_deleted = False
         try:
-            if self.is_valid_sid_format(sid):
+            if self.is_valid_sms_sid(sid):
                 is_deleted = self._client.messages(sid).delete()
-                self.log.info(f"message deleted sid: {sid}")
+                self.log.info(f"message deleted: {sid=}")
         except TwilioRestException:
-            self.log.exception(f"failed to delete message: {sid}")
+            self.log.exception(f"failed to delete message: {sid=}")
         return is_deleted
 
     def redact_message_body(self, sid: str) -> bool:
@@ -295,18 +296,20 @@ class TwilioSmsClient:
             sid (str): unique id for SMS text message
 
         Returns:
-            bool: if file was redacted successfully
+            bool: if message was redacted successfully
         """
         is_redacted = False
         try:
-            if self.is_valid_sid_format(sid):
-                # Can only POST empty Body to message instance
-                message = self._client.messages(sid).update(body="")
-                if not message.body:
-                    self.log.info(f"message body successfully redacted for sid: {sid}")
+            if self.is_valid_sms_sid(sid):
+                # can only POST empty string to message body
+                message = self._client.messages(sid).update(body=REDACTED_BODY)
+                if message.body == REDACTED_BODY:
+                    self.log.info(f"message body redacted: {sid=}")
                     is_redacted = True
+                else:
+                    self.log.error(f"failed redaction {sid=}")
         except TwilioRestException:
-            self.log.exception(f"failed to redact message: {sid}")
+            self.log.exception(f"failed to redact message: {sid=}")
         return is_redacted
 
     def extract_single_message(
@@ -325,14 +328,14 @@ class TwilioSmsClient:
         """
         message = None
         try:
-            if self.is_valid_sid_format(sid):
+            if self.is_valid_sms_sid(sid):
                 sms = self._client.messages(sid).fetch()
                 message = self.parse_message(sms=sms)
                 if message:
                     self.save_records_to_json(path=Path(DATA_PATH, filename), records=[message])
-                    self.log.info(f"message extracted sid: {sid}")
+                    self.log.info(f"message extracted: {sid=}")
         except TwilioRestException:
-            self.log.exception(f"{sid}")
+            self.log.exception(f"{sid=}")
         return message
 
     def extract_all_text_messages(
@@ -367,29 +370,22 @@ class TwilioSmsClient:
 
 
 def run_demo():
-    """Run project demo.
-
-    step1: send text message with random string (+emojis)
-    step2: redact body of prior message
-    step3: validate redaction results
-    step4: extract entire message history
-    """
+    """Run project demo."""
     print(f"{MODULE} started: {pendulum.now(tz='America/Los_Angeles').to_datetime_string()}")
     start = time.perf_counter()
     tsc = TwilioSmsClient(environment="LIVE")
-
     if tsc:
+        # step 1: send test SMS message with random text (+emoji strings) to validated 'to_number'
         sid = tsc.send_sms_text(to_number=tsc.to_number, payload=tsc.build_random_message())
-        # check message body prior to redaction
+        # step 2: Extract prior test message by string identifier (SID)
         tsc.extract_single_message(sid=sid, filename="before_redaction.json")
-        # replace with empty message body
+        # step 3: redact message body of test message
         tsc.redact_message_body(sid=sid)
-        # validate
+        # step 4: validate redaction results
         tsc.extract_single_message(sid=sid, filename="after_redaction.json")
-        # remove message entirely from history
+        # step 5: delete prior test message
         tsc.delete_message(sid=sid)
-
-        # check all messages under account
+        # step 6: extract entire message history for account
         tsc.extract_all_text_messages(filename="text_message_history.json")
 
     print(f"{MODULE} finished ({time.perf_counter() - start:0.2f} seconds)")
