@@ -1,14 +1,14 @@
-## twilio_sms_api_py
+## Twilio Messaging API Demo
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-312/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-blue?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 [![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 Send text messages programmatically with Twilio SMS API.
+Extract message history to JSON.
 
 ![image](./img/twilio_sms.png)
 
@@ -63,6 +63,16 @@ poetry run pre-commit install
 poetry run python ./src/twilio_sms_api/twilio_rest_demo.py
 ```
 
+### Processing Steps:
+1. Send test SMS message with random text (+emoji strings) to validated 'to_number'
+2. Extract prior test message by string identifier (SID)
+3. Redact message body of test message
+4. Validate redaction results
+5. Delete prior test message
+6. Extract entire message history for account
+
+
 ### Resources:
-* [Twilio](https://www.twilio.com)
-* [Twilio API Documentation](https://www.twilio.com/docs/sms/api/message-resource)
+* [Twilio SIDs](https://www.twilio.com/en-us/blog/programmable-messaging-sids)
+* [Twilio API: Messaging](https://www.twilio.com/docs/messaging/api/message-resource)
+* [GitHub: twilio-python](https://github.com/twilio/twilio-python)

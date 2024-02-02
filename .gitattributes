@@ -1,9 +1,10 @@
 # Auto detect text files and perform LF normalization
-* text=auto
+*   text=auto
+*.py    text diff=python
 
 # bash scripts, keep linux LF for newlines
-*.sh text eol=lf
-*.sql text eol=lf
+*.sh    text eol=lf
+*.sql   text eol=lf
 
 # images
-*.png binary
+*.png   binary
